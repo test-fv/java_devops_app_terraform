@@ -1,0 +1,136 @@
+# =========================
+
+# 🔐 SENSIBLES / SECRETOS
+
+# =========================
+
+*.pem
+*.key
+*.crt
+*.pfx
+*.env
+.env.*
+secrets.*
+*.tfvars
+*.tfvars.json
+
+# =========================
+
+# ☁️ TERRAFORM
+
+# =========================
+
+.terraform/
+.terraform.lock.hcl
+
+# State (NUNCA subir esto)
+
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Plan files
+
+*.tfplan
+
+# Variables locales
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# =========================
+
+# 🐳 DOCKER
+
+# =========================
+
+docker-compose.override.yml
+
+# =========================
+
+# ☕ JAVA / MAVEN
+
+# =========================
+
+target/
+*.log
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper logs
+
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+
+# 🧪 TEST / COVERAGE
+
+# =========================
+
+coverage/
+*.lcov
+
+# =========================
+
+# 🧠 IDEs / EDITORES
+
+# =========================
+
+# VS Code
+
+.vscode/
+
+# IntelliJ / JetBrains
+
+.idea/
+*.iml
+
+# Eclipse
+
+.project
+.classpath
+.settings/
+
+# =========================
+
+# 💻 SISTEMA OPERATIVO
+
+# =========================
+
+# Mac
+
+.DS_Store
+
+# Windows
+
+Thumbs.db
+desktop.ini
+
+# Linux
+
+*~
+
+# =========================
+
+# 📦 NODE (por si usas tooling)
+
+# =========================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+
+# 📄 OTROS
+
+# =========================
+
+*.tmp
+*.swp
+*.bak

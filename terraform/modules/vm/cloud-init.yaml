@@ -1,0 +1,41 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker azureuser
+
+  - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+  - mkdir -p /home/azureuser/app
+  - chown azureuser:azureuser /home/azureuser/app
+
+write_files:
+  - path: /home/azureuser/app/deploy.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+
+      ACR_NAME="${acr_name}"
+      IMAGE_NAME="myapp"
+
+      echo "Login ACR..."
+      az acr login --name $ACR_NAME
+
+      echo "Pull imagen..."
+      docker pull $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+
+      echo "Reiniciar contenedor..."
+      docker stop myapp || true
+      docker rm myapp || true
+
+      docker run -d \
+      --name myapp \
+      -p 80:8080 \
+      $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
