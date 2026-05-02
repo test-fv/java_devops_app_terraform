@@ -59,7 +59,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -reconfigure -input=false
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
