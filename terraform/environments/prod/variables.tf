@@ -25,3 +25,8 @@ variable "ssh_public_key" {
 variable "acr_name" {
   type = string
 }
+
+variable "project" {
+  description = "Prefijo del proyecto"
+  type        = string
+}
