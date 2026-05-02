@@ -9,6 +9,7 @@ module "network" {
   rg_name   = module.rg.name
   location  = var.location
   vnet_name = "vnet-dev"
+  project    = var.project
 }
 
 module "acr" {
@@ -16,7 +17,9 @@ module "acr" {
   name     = var.acr_name
   rg_name  = module.rg.name
   location = var.location
+  acr_name = var.acr_name
 }
+
 
 module "vm" {
   source    = "../../modules/vm"
@@ -31,4 +34,10 @@ module "vm" {
   ssh_public_key = file("${path.module}/../../keys/azure_vm_key.pub")
 
   acr_name       = module.acr.acr_name
+}
+
+resource "random_string" "suffix" {
+  length  = 4
+  special = false
+  upper   = false
 }

@@ -34,3 +34,9 @@ module "vm" {
 
   acr_name       = module.acr.acr_name
 }
+
+resource "random_string" "suffix" {
+  length  = 4
+  special = false
+  upper   = false
+}
