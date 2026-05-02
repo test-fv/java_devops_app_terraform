@@ -8,6 +8,7 @@ terraform {
     }
   }
 
+
   backend "azurerm" {
     resource_group_name  = "rg-ci-cd-devops-terraform-prueba"
     storage_account_name = "tfstatecicddevops01"

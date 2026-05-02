@@ -12,6 +12,15 @@ jobs:
     name: Build Test Sonar
     runs-on: ubuntu-latest
 
+    env:
+      TF_VAR_location: ${{ secrets.TF_VAR_location }}
+      TF_VAR_rg_name: ${{ secrets.TF_VAR_rg_name }}
+      TF_VAR_vm_name: ${{ secrets.TF_VAR_vm_name }}
+      TF_VAR_vm_size: ${{ secrets.TF_VAR_vm_size }}
+      TF_VAR_admin_username: ${{ secrets.TF_VAR_admin_username }}
+      TF_VAR_acr_name: ${{ secrets.TF_VAR_acr_name }}
+      TF_VAR_ssh_public_key: ${{ secrets.TF_VAR_ssh_public_key }}
+
     defaults:
       run:
         working-directory: app
