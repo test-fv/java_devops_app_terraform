@@ -33,7 +33,7 @@ jobs:
       - name: Sonar Scan
         run: |
           mvn sonar:sonar \
-            -Dsonar.projectKey=myapp \
+            -Dsonar.projectKey=portfolioappterraform \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
