@@ -17,7 +17,7 @@ module "acr" {
   name     = var.acr_name
   rg_name  = module.rg.name
   location = var.location
-  acr_name = var.acr_name
+  acr_name = local.acr_name
 }
 
 
@@ -40,4 +40,8 @@ resource "random_string" "suffix" {
   length  = 4
   special = false
   upper   = false
+}
+
+locals {
+  acr_name = "acr${var.project}${random_string.suffix.result}"
 }

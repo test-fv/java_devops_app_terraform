@@ -40,3 +40,7 @@ resource "random_string" "suffix" {
   special = false
   upper   = false
 }
+
+locals {
+  acr_name = "acr${var.project}${random_string.suffix.result}"
+}
