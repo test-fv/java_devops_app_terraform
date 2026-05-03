@@ -19,6 +19,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
+
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
   resource_group_name = var.rg_name
