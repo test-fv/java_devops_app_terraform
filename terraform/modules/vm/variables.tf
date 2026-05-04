@@ -15,3 +15,12 @@ variable "acr_name" {
 variable "vm_name" {
   type = string
 }
+
+variable "acr_user" {
+  type = string
+}
+
+variable "acr_pass" {
+  type      = string
+  sensitive = true
+}
