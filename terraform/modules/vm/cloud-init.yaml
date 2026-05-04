@@ -30,14 +30,13 @@ write_files:
       #!/bin/bash
       set -e
 
-      sudo chown -R azureuser:azureuser /home/azureuser/.azure || true
-      export AZURE_CONFIG_DIR=/home/azureuser/.azure
-
       ACR_NAME="${acr_name}"
+      ACR_USER="${acr_user}"
+      ACR_PASS="${acr_pass}"
       IMAGE_NAME="myapp"
 
       echo "Login ACR..."
-      az acr login --name $ACR_NAME
+      docker login $ACR_NAME.azurecr.io -u $ACR_USER -p $ACR_PASS
 
       echo "Pull imagen..."
       docker pull $ACR_NAME.azurecr.io/$IMAGE_NAME:latest

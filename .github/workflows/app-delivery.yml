@@ -40,11 +40,10 @@ jobs:
       - name: Read Outputs
         working-directory: terraform/environments/prod
         run: |
-          VM_IP=$(terraform output -raw vm_ip) || exit 1
-          ACR_NAME=$(terraform output -raw acr_name) || exit 1
-
-          echo "VM_IP=$VM_IP" >> $GITHUB_ENV
-          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+          echo "VM_IP=$(terraform output -raw vm_ip)" >> $GITHUB_ENV
+          echo "ACR_NAME=$(terraform output -raw acr_name)" >> $GITHUB_ENV
+          echo "ACR_USER=$(terraform output -raw acr_username)" >> $GITHUB_ENV
+          echo "ACR_PASS=$(terraform output -raw acr_password)" >> $GITHUB_ENV
 
       - name: Login ACR
         run: az acr login --name $ACR_NAME
