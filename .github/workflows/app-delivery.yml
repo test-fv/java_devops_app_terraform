@@ -46,15 +46,18 @@ jobs:
           echo "ACR_PASS=$(terraform output -raw acr_password | tr -d '\n')" >> $GITHUB_ENV
 
       - name: Login ACR
-        run: az acr login --name $ACR_NAME
+        run: |
+          echo "${ACR_PASS}" | docker login $ACR_NAME.azurecr.io \
+            -u $ACR_USER \
+            --password-stdin
 
       - name: Build Docker Image
         working-directory: app
         run: |
           docker build \
-            echo $ACR_PASS | docker login $ACR_NAME.azurecr.io \
-              -u $ACR_USER \
-              --password-stdin
+            -t $ACR_NAME.azurecr.io/myapp:${{ github.sha }} \
+            -t $ACR_NAME.azurecr.io/myapp:latest \
+            .
 
       - name: Push Image
         run: |
