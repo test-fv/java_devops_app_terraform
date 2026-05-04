@@ -12,8 +12,6 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-
-
     @GetMapping("/health")
     public String health() {
         return "Java App OK en AWS v1 :) :) :) n: :D :O  P: - magical moment !!! ";
