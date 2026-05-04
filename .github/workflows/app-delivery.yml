@@ -11,7 +11,6 @@ jobs:
 build-deploy:
 runs-on: ubuntu-latest
 
-```
 steps:
   - uses: actions/checkout@v4
 
@@ -105,4 +104,3 @@ steps:
           --name myapp \
           -p 80:8080 \
           $ACR_NAME.azurecr.io/myapp:latest
-```
