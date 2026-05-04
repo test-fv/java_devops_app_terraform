@@ -70,6 +70,5 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             cd ~/app
-            chmod +x deploy.sh
             ./deploy.sh
 

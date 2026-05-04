@@ -18,6 +18,7 @@ runcmd:
 
 write_files:
   - path: /home/azureuser/app/deploy.sh
+    owner: azureuser:azureuser
     permissions: '0755'
     content: |
       #!/bin/bash
