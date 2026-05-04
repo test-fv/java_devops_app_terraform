@@ -19,6 +19,9 @@ runcmd:
   - mkdir -p /home/azureuser/app
   - chown -R azureuser:azureuser /home/azureuser/app
 
+  - mkdir -p /home/azureuser/.azure
+  - chown -R azureuser:azureuser /home/azureuser/.azure
+
 write_files:
   - path: /home/azureuser/app/deploy.sh
     owner: azureuser:azureuser
@@ -26,6 +29,9 @@ write_files:
     content: |
       #!/bin/bash
       set -e
+
+      sudo chown -R azureuser:azureuser /home/azureuser/.azure || true
+      export AZURE_CONFIG_DIR=/home/azureuser/.azure
 
       ACR_NAME="${acr_name}"
       IMAGE_NAME="myapp"
