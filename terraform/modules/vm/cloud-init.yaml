@@ -6,6 +6,9 @@ package_upgrade: true
 packages:
   - docker.io
 
+bootcmd:
+  - mkdir -p /home/azureuser/app
+
 runcmd:
   - systemctl enable docker
   - systemctl start docker
@@ -14,7 +17,7 @@ runcmd:
   - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
   - mkdir -p /home/azureuser/app
-  - chown azureuser:azureuser /home/azureuser/app
+  - chown -R azureuser:azureuser /home/azureuser/app
 
 write_files:
   - path: /home/azureuser/app/deploy.sh
@@ -22,6 +25,7 @@ write_files:
     permissions: '0755'
     content: |
       #!/bin/bash
+      set -e
 
       ACR_NAME="${acr_name}"
       IMAGE_NAME="myapp"
@@ -37,6 +41,6 @@ write_files:
       docker rm myapp || true
 
       docker run -d \
-      --name myapp \
-      -p 80:8080 \
-      $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+        --name myapp \
+        -p 80:8080 \
+        $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
