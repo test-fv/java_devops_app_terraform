@@ -49,9 +49,12 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 
-  custom_data = base64encode(
-    templatefile("${path.module}/cloud-init.yaml", {
-      acr_name = var.acr_name
-    })
-  )
+custom_data = base64encode(
+  templatefile("${path.module}/cloud-init.yaml", {
+    acr_name = var.acr_name
+    acr_user = var.acr_user
+    acr_pass = var.acr_pass
+  })
+)
+
 }
