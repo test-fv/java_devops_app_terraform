@@ -34,6 +34,10 @@ write_files:
       IMAGE_NAME="myapp"
 
       echo "Login ACR..."
+
+      export DOCKER_CONFIG=/tmp/docker-config
+      mkdir -p $DOCKER_CONFIG
+
       echo $ACR_PASS | docker login $ACR_NAME.azurecr.io -u $ACR_USER --password-stdin
 
       echo "Pull imagen..."
