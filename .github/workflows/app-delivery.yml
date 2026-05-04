@@ -1,106 +1,71 @@
 name: Application Delivery
 
 on:
-push:
-branches:
-- main
-paths:
-- 'app/**'
+  workflow_run:
+    workflows:
+      - Terraform Infrastructure
+    types:
+      - completed
 
 jobs:
-build-deploy:
-runs-on: ubuntu-latest
+  build-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
 
-steps:
-  - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  # 🔹 Setup Java
-  - name: Setup Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: 17
-      cache: maven
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
 
-  # 🔹 Build app
-  - name: Build Application
-    run: mvn clean package
-    working-directory: app
+      - name: Build Application
+        run: mvn clean package
+        working-directory: app
 
-  # 🔹 Setup Terraform (para leer estado remoto)
-  - name: Setup Terraform
-    uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-  - name: Terraform Init
-    working-directory: terraform/environments/prod
-    run: terraform init -input=false
+      - name: Terraform Init
+        working-directory: terraform/environments/prod
+        run: terraform init -input=false
 
-  # 🔥 VALIDACIÓN FUERTE DE INFRA
-  - name: Validate Infrastructure
-    working-directory: terraform/environments/prod
-    run: |
-      VM_IP=$(terraform output -raw vm_ip) || exit 1
-      ACR_NAME=$(terraform output -raw acr_name) || exit 1
+      - name: Read Outputs
+        working-directory: terraform/environments/prod
+        run: |
+          echo "VM_IP=$(terraform output -raw vm_ip)" >> $GITHUB_ENV
+          echo "ACR_NAME=$(terraform output -raw acr_name)" >> $GITHUB_ENV
 
-      echo "VM_IP=$VM_IP" >> $GITHUB_ENV
-      echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  # 🔹 Login Azure
-  - name: Azure Login
-    uses: azure/login@v2
-    with:
-      creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login ACR
+        run: az acr login --name $ACR_NAME
 
-  # 🔹 Login ACR
-  - name: Login ACR
-    run: az acr login --name $ACR_NAME
+      - name: Build Docker Image
+        working-directory: app
+        run: |
+          docker build \
+            -t $ACR_NAME.azurecr.io/myapp:${{ github.sha }} \
+            -t $ACR_NAME.azurecr.io/myapp:latest \
+            .
 
-  # 🔹 Build Docker
-  - name: Build Docker Image
-    working-directory: app
-    run: |
-      docker build \
-        -t $ACR_NAME.azurecr.io/myapp:${{ github.sha }} \
-        -t $ACR_NAME.azurecr.io/myapp:latest \
-        .
+      - name: Push Image
+        run: |
+          docker push $ACR_NAME.azurecr.io/myapp:${{ github.sha }}
+          docker push $ACR_NAME.azurecr.io/myapp:latest
 
-  # 🔹 Push
-  - name: Push Image
-    run: |
-      docker push $ACR_NAME.azurecr.io/myapp:${{ github.sha }}
-      docker push $ACR_NAME.azurecr.io/myapp:latest
-
-  # 🔥 VALIDAR CONECTIVIDAD SSH
-  - name: Test SSH Connection
-    uses: appleboy/ssh-action@v1.0.3
-    with:
-      host: ${{ env.VM_IP }}
-      username: azureuser
-      key: ${{ secrets.VM_SSH_KEY }}
-      script: echo "SSH OK"
-
-  # 🔥 DEPLOY ROBUSTO
-  - name: Deploy
-    uses: appleboy/ssh-action@v1.0.3
-    with:
-      host: ${{ env.VM_IP }}
-      username: azureuser
-      key: ${{ secrets.VM_SSH_KEY }}
-      script: |
-        set -e
-
-        # Login ACR desde la VM
-        az acr login --name $ACR_NAME
-
-        # Pull nueva imagen
-        docker pull $ACR_NAME.azurecr.io/myapp:latest
-
-        # Stop contenedor anterior si existe
-        docker stop myapp || true
-        docker rm myapp || true
-
-        # Run nuevo contenedor
-        docker run -d \
-          --name myapp \
-          -p 80:8080 \
-          $ACR_NAME.azurecr.io/myapp:latest
+      - name: Deploy Over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.VM_IP }}
+          username: azureuser
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd ~/app
+            ./deploy.sh
