@@ -14,6 +14,6 @@ public class DemoApplication {
 
     @GetMapping("/health")
     public String health() {
-        return "Java App OK en AWS v1 :) :) :) n: :D :O  P: u :D: :b- o: magical moment !!! ";
+        return "Java App OK en AWS v1 :) :) :) n: :D :O  P: u :D: :b- o: G: magical moment !!! ";
     } 
 }
