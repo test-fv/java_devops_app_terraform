@@ -1,15 +1,14 @@
 name: Application Delivery
 
 on:
-  workflow_run:
-    workflows:
-      - Terraform Infrastructure
-    types:
-      - completed
+  push:
+    branches:
+      - main
+    paths:
+      - app/**
 
 jobs:
   build-deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -36,8 +35,11 @@ jobs:
       - name: Read Outputs
         working-directory: terraform/environments/prod
         run: |
-          echo "VM_IP=$(terraform output -raw vm_ip)" >> $GITHUB_ENV
-          echo "ACR_NAME=$(terraform output -raw acr_name)" >> $GITHUB_ENV
+          VM_IP=$(terraform output -raw vm_ip) || exit 1
+          ACR_NAME=$(terraform output -raw acr_name) || exit 1
+
+          echo "VM_IP=$VM_IP" >> $GITHUB_ENV
+          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
 
       - name: Azure Login
         uses: azure/login@v2
@@ -68,4 +70,5 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             cd ~/app
+            chmod +x deploy.sh
             ./deploy.sh
