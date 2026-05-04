@@ -31,8 +31,6 @@ write_files:
       set -e
 
       ACR_NAME="${acr_name}"
-      ACR_USER="${acr_user}"
-      ACR_PASS="${acr_pass}"
       IMAGE_NAME="myapp"
 
       echo "Login ACR..."
