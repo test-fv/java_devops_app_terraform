@@ -33,16 +33,29 @@ write_files:
       ACR_NAME="$ACR_NAME"
       ACR_USER="$ACR_USER"
       ACR_PASS="$ACR_PASS"
-      IMAGE="$ACR_NAME.azurecr.io/myapp:latest"
+      IMAGE_NAME="myapp"
+
+      NEW_IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:latest"
+      BACKUP_IMAGE="myapp:backup"
 
       echo "Login ACR..."
+
+      # 🔥 FIX PERMISOS (tu solución, se mantiene)
+      export DOCKER_CONFIG=/tmp/docker-config
+      mkdir -p $DOCKER_CONFIG
+
       echo $ACR_PASS | docker login $ACR_NAME.azurecr.io -u $ACR_USER --password-stdin
 
-      echo "Pull imagen..."
-      docker pull $IMAGE
+      echo "Backup de versión actual (si existe)..."
+      if docker ps -a --format '{{.Names}}' | grep -q '^myapp$'; then
+        docker commit myapp $BACKUP_IMAGE || true
+      fi
+
+      echo "Pull imagen nueva..."
+      docker pull $NEW_IMAGE
 
       echo "Levantando nueva versión..."
-      docker run -d --name myapp_new -p 8081:8080 $IMAGE
+      docker run -d --name myapp_new -p 8081:8080 $NEW_IMAGE
 
       echo "Esperando que arranque..."
       sleep 10
@@ -51,7 +64,7 @@ write_files:
       if curl -f http://localhost:8081; then
         echo "Nueva versión OK ✔"
 
-        echo "Parando versión actual..."
+        echo "Eliminando versión actual..."
         docker stop myapp || true
         docker rm myapp || true
 
@@ -59,13 +72,29 @@ write_files:
         docker stop myapp_new
         docker rm myapp_new
 
-        docker run -d --name myapp -p 80:8080 $IMAGE
+        docker run -d \
+          --name myapp \
+          -p 80:8080 \
+          $NEW_IMAGE
+
+        echo "Deploy exitoso 🚀"
 
       else
-        echo "Fallo nueva versión ❌ — rollback automático"
+        echo "Fallo nueva versión ❌ — rollback"
 
         docker stop myapp_new || true
         docker rm myapp_new || true
+
+        if docker images | grep -q "myapp.*backup"; then
+          echo "Restaurando versión anterior..."
+          docker run -d \
+            --name myapp \
+            -p 80:8080 \
+            $BACKUP_IMAGE
+          echo "Rollback completado ✔"
+        else
+          echo "No hay backup disponible ⚠"
+        fi
 
         exit 1
       fi
