@@ -30,24 +30,42 @@ write_files:
       #!/bin/bash
       set -e
 
-      ACR_NAME="${acr_name}"
-      IMAGE_NAME="myapp"
+      ACR_NAME="$ACR_NAME"
+      ACR_USER="$ACR_USER"
+      ACR_PASS="$ACR_PASS"
+      IMAGE="$ACR_NAME.azurecr.io/myapp:latest"
 
       echo "Login ACR..."
-
-      export DOCKER_CONFIG=/tmp/docker-config
-      mkdir -p $DOCKER_CONFIG
-
       echo $ACR_PASS | docker login $ACR_NAME.azurecr.io -u $ACR_USER --password-stdin
 
       echo "Pull imagen..."
-      docker pull $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+      docker pull $IMAGE
 
-      echo "Reiniciar contenedor..."
-      docker stop myapp || true
-      docker rm myapp || true
+      echo "Levantando nueva versión..."
+      docker run -d --name myapp_new -p 8081:8080 $IMAGE
 
-      docker run -d \
-        --name myapp \
-        -p 80:8080 \
-        $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+      echo "Esperando que arranque..."
+      sleep 10
+
+      echo "Validando nueva versión..."
+      if curl -f http://localhost:8081; then
+        echo "Nueva versión OK ✔"
+
+        echo "Parando versión actual..."
+        docker stop myapp || true
+        docker rm myapp || true
+
+        echo "Promoviendo nueva versión..."
+        docker stop myapp_new
+        docker rm myapp_new
+
+        docker run -d --name myapp -p 80:8080 $IMAGE
+
+      else
+        echo "Fallo nueva versión ❌ — rollback automático"
+
+        docker stop myapp_new || true
+        docker rm myapp_new || true
+
+        exit 1
+      fi
