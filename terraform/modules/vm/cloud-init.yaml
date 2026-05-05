@@ -61,7 +61,7 @@ write_files:
       sleep 10
 
       echo "Validando nueva versión..."
-      if curl -f http://localhost:8081; then
+      if curl -f http://localhost:8081/health; then
         echo "Nueva versión OK ✔"
 
         echo "Eliminando versión actual..."
