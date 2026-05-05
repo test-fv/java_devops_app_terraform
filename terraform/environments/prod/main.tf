@@ -33,6 +33,7 @@ module "vm" {
   ssh_public_key = file("${path.module}/../../keys/azure_vm_key.pub")
 
   acr_name = module.acr.acr_name
+  nsg_id   = module.network.nsg_id
   acr_user = module.acr.acr_username
   acr_pass = module.acr.acr_password
 }

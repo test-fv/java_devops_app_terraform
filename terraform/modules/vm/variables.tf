@@ -24,3 +24,7 @@ variable "acr_pass" {
   type      = string
   sensitive = true
 }
+
+variable "nsg_id" {
+  type = string
+}
