@@ -34,22 +34,26 @@ write_files:
       ACR_USER="$ACR_USER"
       ACR_PASS="$ACR_PASS"
       IMAGE_NAME="myapp"
+      IMAGE_TAG="$IMAGE_TAG"
 
-      NEW_IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:latest"
-      BACKUP_IMAGE="myapp:backup"
+      NEW_IMAGE="$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
+      STATE_FILE="/home/azureuser/app/current_sha"
 
       echo "Login ACR..."
 
-      # 🔥 FIX PERMISOS (tu solución, se mantiene)
       export DOCKER_CONFIG=/tmp/docker-config
       mkdir -p $DOCKER_CONFIG
 
       echo $ACR_PASS | docker login $ACR_NAME.azurecr.io -u $ACR_USER --password-stdin
 
-      echo "Backup de versión actual (si existe)..."
-      if docker ps -a --format '{{.Names}}' | grep -q '^myapp$'; then
-        docker commit myapp $BACKUP_IMAGE || true
+      # Leer SHA anterior
+      PREVIOUS_SHA=""
+      if [ -f "$STATE_FILE" ]; then
+        PREVIOUS_SHA=$(cat $STATE_FILE)
       fi
+
+      echo "SHA anterior: $PREVIOUS_SHA"
+      echo "Nuevo SHA: $IMAGE_TAG"
 
       echo "Pull imagen nueva..."
       docker pull $NEW_IMAGE
@@ -63,6 +67,9 @@ write_files:
       echo "Validando nueva versión..."
       if curl -f http://localhost:8081/health; then
         echo "Nueva versión OK ✔"
+
+        # Guardar nuevo SHA
+        echo $IMAGE_TAG > $STATE_FILE
 
         echo "Eliminando versión actual..."
         docker stop myapp || true
@@ -85,15 +92,22 @@ write_files:
         docker stop myapp_new || true
         docker rm myapp_new || true
 
-        if docker images | grep -q "myapp.*backup"; then
-          echo "Restaurando versión anterior..."
+        if [ ! -z "$PREVIOUS_SHA" ]; then
+          echo "Restaurando versión anterior: $PREVIOUS_SHA"
+
+          docker pull $ACR_NAME.azurecr.io/$IMAGE_NAME:$PREVIOUS_SHA
+
+          docker stop myapp || true
+          docker rm myapp || true
+
           docker run -d \
             --name myapp \
             -p 80:8080 \
-            $BACKUP_IMAGE
+            $ACR_NAME.azurecr.io/$IMAGE_NAME:$PREVIOUS_SHA
+
           echo "Rollback completado ✔"
         else
-          echo "No hay backup disponible ⚠"
+          echo "No hay versión previa ⚠"
         fi
 
         exit 1

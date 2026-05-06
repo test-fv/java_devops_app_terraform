@@ -66,11 +66,14 @@ jobs:
 
       - name: Deploy Over SSH
         uses: appleboy/ssh-action@v1.0.3
+
+        env:
+         IMAGE_TAG: ${{ github.sha }}
         with:
           host: ${{ env.VM_IP }}
           username: azureuser
           key: ${{ secrets.VM_SSH_KEY }}
-          envs: ACR_NAME,ACR_USER,ACR_PASS
+          envs: ACR_NAME,ACR_USER,ACR_PASS,IMAGE_TAG
           script: |
             cd ~/app
             ./deploy.sh
